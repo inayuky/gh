@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# check github cli is installed
+type gh > /dev/null 2>&1
+if [ $? = 1 ]; then
+  echo "error: gh command not found. (please install github cli)"
+  exit 1
+fi
+
+# check user name is set to git
+USER_NAME="$(git config --get user.name)"
+if [ -z "$USER_NAME" ]; then
+  echo "error: user.name can't get from git."
+  exit 1
+fi
+
+# check target repository name is given
+if [ -z "$1" ]; then
+  echo "error: specify target repository name."
+  exit 1
+fi
+
+TARGET_REPO="$1"
+
+# check new repository name is given
+if [ -z "$2" ]; then
+  echo "error: specify new repository name."
+  exit 1
+fi
+
+NEW_REPO="$2"
+
+gh repo create -y "$NEW_REPO" --private
+
+sleep 1 # wait for creating github repository
+
+cp -a "$TARGET_REPO"/ "$NEW_REPO"
+
+cd "$NEW_REPO"
+git remote set-url origin https://github.com/"$USER_NAME"/"$2"
+git branch -M main
+git push -u origin main
